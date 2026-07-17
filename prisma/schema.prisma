@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model kriteria {
+  id_kriteria   Int              @id @default(autoincrement())
+  nama_kriteria String           @db.VarChar(30)
+  atribut       kriteria_atribut
+  bobot         Decimal          @db.Decimal(4, 2)
+}
+
+model rating {
+  rating_id     Int           @id @default(autoincrement())
+  date          DateTime      @db.Date
+  id_tmpt_wst   Int
+  wahana        Int
+  kebersihan    Int
+  spot_foto     Int
+  popularitas   Int
+  review        String        @db.Text
+  nama_penilai  String        @db.VarChar(50)
+  tempat_wisata tempat_wisata @relation(fields: [id_tmpt_wst], references: [id_tmpt_wst], onUpdate: Restrict, map: "id_tmpt_wst_fk")
+
+  @@index([id_tmpt_wst], map: "id_tmpt_wst_fk")
+}
+
+model tempat_wisata {
+  id_tmpt_wst Int                    @id @default(autoincrement())
+  nama_tempat String                 @db.VarChar(100)
+  kategori    tempat_wisata_kategori
+  biaya       Int
+  deskripsi   String                 @db.Text
+  gambar      String                 @db.VarChar(255)
+  rating      rating[]
+}
+
+model users {
+  user_id  Int        @id @default(autoincrement())
+  username String     @unique(map: "unique_username") @db.VarChar(20)
+  password String     @db.VarChar(100)
+  role     users_role
+}
+
+enum kriteria_atribut {
+  Benefit
+  Cost
+}
+
+enum tempat_wisata_kategori {
+  Alam
+  Budaya
+  Religi
+  Edukasi
+  Rekreasi
+}
+
+enum users_role {
+  admin
+  super_admin
+}
