@@ -5,12 +5,17 @@ import {
     getRatingById,
     createRating,
     updateRating,
-    deleteRating
+    deleteRating,
+    getRatingSummary,
+    getRatingDetail
 } from "../controllers/rating.controller.js";
 
 import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+router.get("/summary", getRatingSummary);
+router.get("/detail/:id", getRatingDetail);
 
 router.get("/", getAllRating);
 router.get("/:id", getRatingById);

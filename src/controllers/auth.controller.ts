@@ -106,6 +106,11 @@ export const login = async (
             message: "Login berhasil",
             data: {
                 token,
+                user: {
+                    user_id: user.user_id,
+                    username: user.username,
+                    role: user.role,
+                },
             },
         });
     } catch (error) {
