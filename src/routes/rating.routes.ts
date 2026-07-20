@@ -7,7 +7,8 @@ import {
     updateRating,
     deleteRating,
     getRatingSummary,
-    getRatingDetail
+    getRatingDetail,
+    getRatingByWisata
 } from "../controllers/rating.controller.js";
 
 import { authenticate } from "../middlewares/auth.middleware.js";
@@ -18,8 +19,9 @@ router.get("/summary", getRatingSummary);
 router.get("/detail/:id", getRatingDetail);
 
 router.get("/", getAllRating);
+router.get("/wisata/:id", getRatingByWisata);
 router.get("/:id", getRatingById);
-router.post("/", authenticate, createRating);
+router.post("/", createRating);
 router.put("/:id", authenticate, updateRating);
 router.delete("/:id", authenticate, deleteRating);
 

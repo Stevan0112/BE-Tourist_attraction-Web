@@ -8,14 +8,50 @@ export const getAllWisata = async (
 ): Promise<void> => {
     try {
         const wisata = await prisma.tempat_wisata.findMany({
+            include: {
+                rating: true,
+            },
             orderBy: {
                 nama_tempat: "asc"
             }
         });
 
+        const result = wisata.map((item) => {
+            const jumlah_review = item.rating.length;
+
+            const avg_rating =
+                jumlah_review === 0
+                    ? 0
+                    : Number(
+                        (
+                            item.rating.reduce((total, rating) => {
+                                const nilai =
+                                    (
+                                        rating.wahana +
+                                        rating.kebersihan +
+                                        rating.spot_foto +
+                                        rating.popularitas
+                                    ) / 4;
+                                return total + nilai;
+                            }, 0) / jumlah_review
+                        ).toFixed(1)
+                    );
+
+            return {
+                id_tmpt_wst: item.id_tmpt_wst,
+                nama_tempat: item.nama_tempat,
+                kategori: item.kategori,
+                biaya: item.biaya,
+                deskripsi: item.deskripsi,
+                gambar: item.gambar,
+                avg_rating,
+                jumlah_review,
+            };
+        });
+
         res.json({
             success: true,
-            data: wisata
+            data: result //sebelumnya "wisata"
         });
     } catch (err) {
         console.error(err);
@@ -35,6 +71,9 @@ export const getWisataById = async (
         const id = Number(req.params.id);
 
         const wisata = await prisma.tempat_wisata.findUnique({
+            include: {
+                rating: true,
+            },
             where: {
                 id_tmpt_wst: id
             }
@@ -48,9 +87,28 @@ export const getWisataById = async (
             return;
         }
 
+        const jumlah_review = wisata.rating.length;
+        const avg_rating =
+            jumlah_review === 0
+                ? 0
+                : wisata.rating.reduce((sum, item) => {
+                    const nilai =
+                        (
+                            item.wahana +
+                            item.kebersihan +
+                            item.spot_foto +
+                            item.popularitas
+                        ) / 4;
+                    return sum + nilai;
+                }, 0) / jumlah_review;
+
         res.json({
             success: true,
-            data: wisata
+            data: {
+                ...wisata,
+                avg_rating: Number(avg_rating.toFixed(1)),
+                jumlah_review,
+            }
         });
     } catch (err) {
         console.error(err);
@@ -184,6 +242,14 @@ export const deleteWisata = async (
     try {
         const id = Number(req.params.id);
 
+        // Hapus semua rating yang berhubungan
+        await prisma.rating.deleteMany({
+            where: {
+                id_tmpt_wst: id,
+            },
+        });
+
+        // Baru hapus tempat wisata
         await prisma.tempat_wisata.delete({
             where: {
                 id_tmpt_wst: id

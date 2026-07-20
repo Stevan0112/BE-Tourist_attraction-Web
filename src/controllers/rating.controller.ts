@@ -67,6 +67,59 @@ export const getRatingById = async (
     }
 };
 
+export const getRatingByWisata = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const id = Number(req.params.id);
+
+        const rating = await prisma.rating.findMany({
+            where: {
+                id_tmpt_wst: id,
+            },
+            include:{
+                tempat_wisata:true
+            },
+            orderBy: {
+                date: "desc",
+            },
+        });
+
+        const result = rating.map((item) => {
+            const rata_rata = Number(
+                (
+                    (
+                        item.wahana +
+                        item.kebersihan +
+                        item.spot_foto +
+                        item.popularitas
+                    ) / 4
+                ).toFixed(1)
+            );
+
+            return {
+                ...item,
+                rata_rata,
+            };
+        });
+
+        res.json({
+            success: true,
+            data: result,
+        });
+    }
+
+    catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
 export const createRating = async (
     req: Request,
     res: Response
